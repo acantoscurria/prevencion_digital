@@ -97,19 +97,38 @@ export default function TheaterProgram() {
           {/* Espacio para logos */}
           <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
             <div className="flex items-center gap-4">
+              {/**
+               * Usamos NEXT_PUBLIC_BASE_PATH para que en producción (GitHub Pages)
+               * las rutas apunten a /prevencion_digital/images/..., mientras que
+               * en desarrollo la ruta será /images/...
+               */}
               <div className="w-16 h-16 md:w-20 md:h-20 border-2 border-primary border-glow rounded-sm flex items-center justify-center bg-background/50 overflow-hidden">
-                <img
-                  src="/images/logo_nacional.jpg"
-                  alt="Logo Nacional"
-                  className="w-12 h-12 md:w-16 md:h-16 object-contain"
-                />
+                {(() => {
+                  const prefix = process.env.NEXT_PUBLIC_BASE_PATH
+                    ? `/${process.env.NEXT_PUBLIC_BASE_PATH.replace(/^\/|\/$/g, "")}`
+                    : ""
+                  return (
+                    <img
+                      src={`${prefix}/images/logo_nacional.jpg`}
+                      alt="Logo Nacional"
+                      className="w-12 h-12 md:w-16 md:h-16 object-contain"
+                    />
+                  )
+                })()}
               </div>
               <div className="w-16 h-16 md:w-20 md:h-20 border-2 border-primary border-glow rounded-sm flex items-center justify-center bg-background/50 overflow-hidden">
-                <img
-                  src="/images/poli_chaco.jpeg"
-                  alt="Policía del Chaco"
-                  className="w-12 h-12 md:w-16 md:h-16 object-contain"
-                />
+                {(() => {
+                  const prefix = process.env.NEXT_PUBLIC_BASE_PATH
+                    ? `/${process.env.NEXT_PUBLIC_BASE_PATH.replace(/^\/|\/$/g, "")}`
+                    : ""
+                  return (
+                    <img
+                      src={`${prefix}/images/poli_chaco.jpeg`}
+                      alt="Policía del Chaco"
+                      className="w-12 h-12 md:w-16 md:h-16 object-contain"
+                    />
+                  )
+                })()}
               </div>
             </div>
 

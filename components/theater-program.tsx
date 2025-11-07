@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Clock, Shield, Wifi, Terminal } from "lucide-react"
+import { Clock, Shield, Wifi } from "lucide-react"
 
 // Datos de las obras del programa
 const theaterSchedule = [
@@ -97,11 +97,19 @@ export default function TheaterProgram() {
           {/* Espacio para logos */}
           <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 md:w-20 md:h-20 border-2 border-primary border-glow rounded-sm flex items-center justify-center bg-background/50">
-                <Shield className="w-8 h-8 md:w-10 md:h-10 text-primary" />
+              <div className="w-16 h-16 md:w-20 md:h-20 border-2 border-primary border-glow rounded-sm flex items-center justify-center bg-background/50 overflow-hidden">
+                <img
+                  src="/images/logo_nacional.jpg"
+                  alt="Logo Nacional"
+                  className="w-12 h-12 md:w-16 md:h-16 object-contain"
+                />
               </div>
-              <div className="w-16 h-16 md:w-20 md:h-20 border-2 border-primary border-glow rounded-sm flex items-center justify-center bg-background/50">
-                <Terminal className="w-8 h-8 md:w-10 md:h-10 text-primary" />
+              <div className="w-16 h-16 md:w-20 md:h-20 border-2 border-primary border-glow rounded-sm flex items-center justify-center bg-background/50 overflow-hidden">
+                <img
+                  src="/images/poli_chaco.jpeg"
+                  alt="Policía del Chaco"
+                  className="w-12 h-12 md:w-16 md:h-16 object-contain"
+                />
               </div>
             </div>
 

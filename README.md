@@ -114,9 +114,6 @@ Las contribuciones son bienvenidas. Para contribuir:
 **Colegio Nacional**  
 **Departamento de Cibercrimen - Policía del Chaco**
 
-Para más información sobre ciberseguridad:  
-[www.argentina.gob.ar/aaip](https://www.argentina.gob.ar/aaip)
-
 ## 📄 Licencia
 
 Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.

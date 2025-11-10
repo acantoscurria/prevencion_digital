@@ -1,10 +1,28 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { Clock, Shield, X } from "lucide-react"
 
-// Datos de las obras reales
-const obras = [
+type Obra = {
+  id: number
+  titulo: string
+  duracion: string
+  hora: string
+  director: string
+  curso: string
+  sinopsis: string
+  elenco: string[]
+  asistentes: string[]
+}
+
+type Status = "completed" | "in-progress" | "upcoming"
+
+const EVENT_MONTH = 11 // 1-based (November)
+const EVENT_DAY = 13
+const EVENT_START_HOUR = 10
+const EVENT_START_MINUTE = 30
+
+const obras: Obra[] = [
   {
     id: 1,
     titulo: "PERFIL RESTRINGIDO",
@@ -12,7 +30,8 @@ const obras = [
     hora: "10:30",
     director: "Profesor Gonzalo Ezequiel Rajoy",
     curso: "4° y 5° año – Turno Mañana",
-    sinopsis: "Revela que detrás de la pantalla nada es lo que parece. Es el reflejo de una realidad oculta tras cada perfil: el grooming —abuso de menores—.",
+    sinopsis:
+      "Revela que detrás de la pantalla nada es lo que parece. Es el reflejo de una realidad oculta tras cada perfil: el grooming —abuso de menores—.",
     elenco: [
       "Caravaca Julieta Belén",
       "Carlen Ernestina",
@@ -31,6 +50,11 @@ const obras = [
       "Spotorno Ana Carolina",
       "Wyss Sophia",
     ],
+    asistentes: [
+      "Barrios Luna Grisel",
+      "Espinoza Daira Aramis",
+      "Duarte Angelina Magalí",
+    ],
   },
   {
     id: 2,
@@ -39,7 +63,8 @@ const obras = [
     hora: "10:50",
     director: "Profesora Silvia Inés Gamboa",
     curso: "4° año – 4ta división – Turno Tarde",
-    sinopsis: "Muestra el lado más oscuro de las redes: una joven engañada, un profesor impune y una comunidad que despierta ante la ausencia de Amparo.",
+    sinopsis:
+      "Muestra el lado más oscuro de las redes: una joven engañada, un profesor impune y una comunidad que despierta ante la ausencia de Amparo.",
     elenco: [
       "Aguirre Amparo",
       "Vargas Julián",
@@ -71,8 +96,30 @@ const obras = [
       "Valenzuela Facundo",
       "Contreras Evangelina",
     ],
+    asistentes: ["Lucía López"],
   },
 ]
+
+const bootSequence = [
+  { text: "> Iniciando enlace con sistema PREVENCIÓN DIGITAL...", delay: 550 },
+  { text: "> Abriendo canal cifrado con sala privada...", delay: 620 },
+  { text: "> Verificando credenciales del elenco y equipo técnico...", delay: 580 },
+  { text: "> Sincronizando horarios con protocolo de ciberseguridad...", delay: 600 },
+  { text: "> Compilando programa interactivo para espectadores autorizados...", delay: 640 },
+  { text: "> Acceso concedido. Cargando experiencia inmersiva...", delay: 700 },
+]
+
+type TimelineItem = {
+  data: Obra
+  status: Status
+}
+
+function resolveAssetPrefix(): string {
+  if (typeof process === "undefined") return ""
+  const base = process.env.NEXT_PUBLIC_BASE_PATH
+  if (!base) return ""
+  return `/${base.replace(/^\/|\/$/g, "")}`
+}
 
 // Modal para mostrar elenco
 function ElencoModal({
@@ -82,7 +129,7 @@ function ElencoModal({
 }: {
   isOpen: boolean
   onClose: () => void
-  obra: typeof obras[0] | null
+  obra: Obra | null
 }) {
   if (!isOpen || !obra) return null
 
@@ -101,6 +148,21 @@ function ElencoModal({
         <p className="mb-4 text-sm text-muted-foreground">{obra.curso}</p>
         <p className="mb-6 italic text-muted-foreground">Dirección: {obra.director}</p>
 
+        {obra.asistentes.length > 0 && (
+          <div className="mb-6">
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-primary">
+              Asistentes y operadoras
+            </h3>
+            <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
+              {obra.asistentes.map((persona) => (
+                <li key={persona} className="text-sm text-muted-foreground">
+                  • {persona}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <h3 className="mb-4 text-lg font-bold text-primary uppercase">Elenco:</h3>
         <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
           {obra.elenco.map((actor, idx) => (
@@ -115,18 +177,134 @@ function ElencoModal({
 }
 
 export default function TheaterProgram() {
-  const [selectedObra, setSelectedObra] = useState<typeof obras[0] | null>(null)
+  const [selectedObra, setSelectedObra] = useState<Obra | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [bootMessages, setBootMessages] = useState<string[]>([])
+  const [progress, setProgress] = useState(0)
+  const [isBooting, setIsBooting] = useState(true)
 
-  React.useEffect(() => {
+  const eventDayStart = useMemo(() => {
+    const year = currentTime.getFullYear()
+    return new Date(year, EVENT_MONTH - 1, EVENT_DAY, 0, 0, 0, 0)
+  }, [currentTime])
+  const eventDayEnd = useMemo(() => {
+    const year = currentTime.getFullYear()
+    return new Date(year, EVENT_MONTH - 1, EVENT_DAY + 1, 0, 0, 0, 0)
+  }, [currentTime])
+  const eventStart = useMemo(() => {
+    const year = currentTime.getFullYear()
+    return new Date(year, EVENT_MONTH - 1, EVENT_DAY, EVENT_START_HOUR, EVENT_START_MINUTE, 0, 0)
+  }, [currentTime])
+
+  useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date())
     }, 1000)
     return () => clearInterval(timer)
   }, [])
 
-  const openElenco = (obra: typeof obras[0]) => {
+  useEffect(() => {
+    let mounted = true
+    let step = 0
+    const timers: number[] = []
+
+    const run = () => {
+      if (!mounted) return
+      if (step >= bootSequence.length) {
+        setProgress(100)
+        timers.push(window.setTimeout(() => {
+          if (mounted) {
+            setIsBooting(false)
+          }
+        }, 700))
+        return
+      }
+
+      const entry = bootSequence[step]
+      setBootMessages((prev) => [...prev, entry.text])
+      setProgress(Math.min(95, Math.round(((step + 1) / (bootSequence.length + 1)) * 100)))
+      step += 1
+      timers.push(window.setTimeout(run, entry.delay))
+    }
+
+    timers.push(window.setTimeout(run, 350))
+
+    return () => {
+      mounted = false
+      timers.forEach((id) => clearTimeout(id))
+    }
+  }, [])
+
+  const isBeforeEventDay = currentTime < eventDayStart
+  const isAfterEventDay = currentTime >= eventDayEnd
+
+  const countdown = useMemo(() => {
+    const diffMs = eventStart.getTime() - currentTime.getTime()
+
+    if (diffMs <= 0) {
+      if (isAfterEventDay) {
+        return {
+          text: "La función ya finalizó. Gracias por acompañarnos.",
+          className: "text-primary/80",
+        }
+      }
+
+      return {
+        text: "¡La función está en escena ahora mismo!",
+        className: "text-red-400",
+      }
+    }
+
+    const totalSeconds = Math.floor(diffMs / 1000)
+    const days = Math.floor(totalSeconds / 86400)
+    const hours = Math.floor((totalSeconds % 86400) / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+
+    const segments: string[] = []
+    if (days > 0) segments.push(`${days} día${days !== 1 ? "s" : ""}`)
+    if (hours > 0) segments.push(`${hours} hora${hours !== 1 ? "s" : ""}`)
+    if (minutes > 0) segments.push(`${minutes} minuto${minutes !== 1 ? "s" : ""}`)
+    if (segments.length === 0) segments.push("menos de un minuto")
+
+    const isUrgent = totalSeconds <= 3600
+
+    return {
+      text: `Faltan ${segments.join(", ")} para el inicio de la función.`,
+      className: isUrgent ? "text-red-400" : "text-yellow-400",
+    }
+  }, [currentTime, eventStart, isAfterEventDay])
+
+  const timeline = useMemo<TimelineItem[]>(() => {
+    const now = currentTime.getHours() * 60 + currentTime.getMinutes()
+
+    return obras.map((obra) => {
+      const [hours, minutes] = obra.hora.split(":").map(Number)
+      const start = hours * 60 + minutes
+      const duration = Number.parseInt(obra.duracion, 10) || 0
+
+      let status: Status
+      if (isBeforeEventDay) {
+        status = "upcoming"
+      } else if (isAfterEventDay) {
+        status = "completed"
+      } else {
+        if (now < start) {
+          status = "upcoming"
+        } else if (now >= start && now < start + duration) {
+          status = "in-progress"
+        } else {
+          status = "completed"
+        }
+      }
+
+      return { data: obra, status }
+    })
+  }, [currentTime, isBeforeEventDay, isAfterEventDay])
+
+  const prefix = useMemo(resolveAssetPrefix, [])
+
+  const openElenco = (obra: Obra) => {
     setSelectedObra(obra)
     setIsModalOpen(true)
   }
@@ -136,44 +314,101 @@ export default function TheaterProgram() {
     setSelectedObra(null)
   }
 
-  const getPrefix = () => {
-    if (typeof process === "undefined") return ""
-    return process.env.NEXT_PUBLIC_BASE_PATH
-      ? `/${process.env.NEXT_PUBLIC_BASE_PATH.replace(/^\/|\/$/g, "")}`
-      : ""
+  const statusLabels: Record<Status, string> = {
+    completed: "✓ Completo",
+    "in-progress": "▶ En vivo",
+    upcoming: "○ Próximo",
   }
 
-  const prefix = getPrefix()
+  const statusBadgeClasses: Record<Status, string> = {
+    completed: "border-primary/60 text-primary bg-primary/10",
+    "in-progress": "border-primary text-primary bg-primary/20 border-glow",
+    upcoming: "border-primary/30 text-muted-foreground",
+  }
+
+  const statusClockClasses: Record<Status, string> = {
+    completed: "text-primary",
+    "in-progress": "text-primary animate-pulse",
+    upcoming: "text-foreground",
+  }
+
+  const statusDotClasses: Record<Status, string> = {
+    completed: "bg-primary border-primary",
+    "in-progress": "bg-primary border-primary",
+    upcoming: "bg-background border-border",
+  }
 
   return (
-    <div className="min-h-screen bg-background text-foreground scanline">
-      {/* Header con logos reorganizados */}
-      <header className="border-b border-primary/30 bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-6">
-          {/* Logos en grid responsivo */}
-          <div className="flex items-center justify-center gap-4 md:gap-6 mb-8 flex-wrap">
-            <div className="w-20 h-20 md:w-24 md:h-24 border-2 border-primary border-glow rounded-lg flex items-center justify-center bg-background/50 overflow-hidden hover:border-primary/80 transition-all">
-              <img
-                src={`${prefix}/images/logo_nacional.jpg`}
-                alt="Logo Nacional"
-                className="w-16 h-16 md:w-20 md:h-20 object-contain"
-              />
-            </div>
-            <div className="w-20 h-20 md:w-24 md:h-24 border-2 border-primary border-glow rounded-lg flex items-center justify-center bg-background/50 overflow-hidden hover:border-primary/80 transition-all">
-              <img
-                src={`${prefix}/images/poli_chaco.jpeg`}
-                alt="Policía del Chaco"
-                className="w-16 h-16 md:w-20 md:h-20 object-contain"
-              />
-            </div>
-            <div className="w-20 h-20 md:w-24 md:h-24 border-2 border-primary border-glow rounded-lg flex items-center justify-center bg-background/50 overflow-hidden hover:border-primary/80 transition-all">
-              <img
-                src={`${prefix}/images/Cibercrimen.png`}
-                alt="Cibercrimen"
-                className="w-16 h-16 md:w-20 md:h-20 object-contain"
-              />
+    <>
+      {isBooting && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black">
+          <div className="w-full max-w-xl px-6">
+            <div className="rounded-lg border border-primary/60 bg-black/85 p-6 shadow-[0_0_25px_rgba(34,197,94,0.35)]">
+              <p className="mb-4 font-mono text-sm uppercase tracking-[0.35em] text-primary">
+                ▸ Accediendo a sala privada
+              </p>
+              <div className="max-h-48 overflow-hidden rounded-sm border border-primary/30 bg-black/70 p-4 font-mono text-xs text-green-400">
+                {bootMessages.map((msg, idx) => (
+                  <p key={idx} className="whitespace-pre-line">
+                    {msg}
+                  </p>
+                ))}
+                <span className="animate-pulse text-green-300">▌</span>
+              </div>
+              <div className="mt-4">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-primary/10">
+                  <div
+                    className="h-full bg-primary transition-[width] duration-300 ease-out"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
+        </div>
+      )}
+
+      <div
+        className={`relative min-h-screen bg-background text-foreground scanline transition-opacity duration-500 ${
+          isBooting ? "opacity-0" : "opacity-100"
+        }`}
+        aria-hidden={isBooting}
+      >
+        <div className="pointer-events-none fixed inset-0 -z-10">
+          <img
+            src={`${prefix}/images/background_prevencion_digital.png`}
+            alt="Fondo prevención digital"
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/80" />
+        </div>
+        {/* Header con logos reorganizados */}
+        <header className="border-b border-primary/30 bg-card/50 backdrop-blur-sm sticky top-0 z-40">
+          <div className="container mx-auto px-4 py-6">
+            {/* Logos en grid responsivo */}
+            <div className="flex items-center justify-center gap-4 md:gap-6 mb-8 flex-wrap">
+              <div className="w-20 h-20 md:w-24 md:h-24 border-2 border-primary border-glow rounded-lg flex items-center justify-center bg-background/50 overflow-hidden hover:border-primary/80 transition-all">
+                <img
+                  src={`${prefix}/images/logo_nacional.jpg`}
+                  alt="Logo Nacional"
+                  className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                />
+              </div>
+              <div className="w-20 h-20 md:w-24 md:h-24 border-2 border-primary border-glow rounded-lg flex items-center justify-center bg-background/50 overflow-hidden hover:border-primary/80 transition-all">
+                <img
+                  src={`${prefix}/images/poli_chaco.jpeg`}
+                  alt="Policía del Chaco"
+                  className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                />
+              </div>
+              <div className="w-20 h-20 md:w-24 md:h-24 border-2 border-primary border-glow rounded-lg flex items-center justify-center bg-background/50 overflow-hidden hover:border-primary/80 transition-all">
+                <img
+                  src={`${prefix}/images/Cibercrimen.png`}
+                  alt="Cibercrimen"
+                  className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                />
+              </div>
+            </div>
 
           {/* Reloj y título */}
           <div className="text-center space-y-4">
@@ -199,6 +434,9 @@ export default function TheaterProgram() {
               <p className="text-xs md:text-sm text-muted-foreground">
                 Comienza a las 10:30 hs | Finaliza a las 11:10 hs (aproximadamente)
               </p>
+              <p className={`text-xs font-semibold uppercase md:text-sm ${countdown.className}`}>
+                {countdown.text}
+              </p>
             </div>
           </div>
         </div>
@@ -217,48 +455,97 @@ export default function TheaterProgram() {
             </p>
           </div>
 
-          {/* Obras en grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {obras.map((obra) => (
+          {/* Timeline vertical */}
+          <div className="space-y-6">
+            {timeline.map(({ data: obra, status }, index) => (
               <div
                 key={obra.id}
-                className="border-2 border-primary/30 rounded-lg p-6 bg-card/50 hover:border-primary/60 transition-all hover:shadow-lg hover:shadow-primary/20"
+                className={`group relative border rounded-lg transition-all duration-300 ${
+                  status === "in-progress"
+                    ? "border-primary border-glow bg-primary/5"
+                    : "border-primary/30 bg-card/40 hover:border-primary/50"
+                }`}
               >
-                {/* Hora */}
-                <div className="flex items-center gap-2 mb-3">
-                  <Clock className="w-5 h-5 text-primary" />
-                  <span className="font-mono font-bold text-primary">{obra.hora}</span>
-                  <span className="text-xs text-muted-foreground">({obra.duracion})</span>
+                {index < timeline.length - 1 && (
+                  <span
+                    className={`absolute left-[44px] md:left-[60px] top-full h-6 w-px ${
+                      status === "completed" ? "bg-primary" : "bg-primary/40"
+                    }`}
+                  />
+                )}
+
+                <div className="grid grid-cols-[90px_1fr] gap-4 p-6 md:grid-cols-[120px_1fr_150px] md:gap-6">
+                  {/* Columna de tiempo */}
+                  <div className="flex flex-col items-start">
+                    <div
+                      className={`text-lg font-bold md:text-xl ${statusClockClasses[status]}`}
+                    >
+                      {obra.hora}
+                    </div>
+                    <div className="text-xs text-muted-foreground">{obra.duracion}</div>
+                    <div className="relative mt-3">
+                      <span
+                        className={`block h-3 w-3 rounded-full border-2 ${statusDotClasses[status]}`}
+                      />
+                      {status === "in-progress" && (
+                        <span className="absolute inset-0 h-3 w-3 rounded-full border-2 border-primary/60 animate-ping" />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Contenido principal */}
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-bold uppercase text-primary md:text-xl">
+                      {status === "in-progress" && <span className="mr-1">&gt;</span>}
+                      {obra.titulo}
+                    </h3>
+                    <p className="text-sm italic leading-relaxed text-muted-foreground md:text-base">
+                      {obra.sinopsis}
+                    </p>
+                    <div className="grid gap-2 text-xs text-muted-foreground md:grid-cols-2 md:text-sm">
+                      <p>
+                        <span className="font-semibold text-foreground">Curso:</span> {obra.curso}
+                      </p>
+                      <p>
+                        <span className="font-semibold text-foreground">Dirección:</span> {obra.director}
+                      </p>
+                      <p className="md:col-span-2">
+                        <span className="font-semibold text-foreground">Asistentes y operadoras:</span>{" "}
+                        {obra.asistentes.join(", ")}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Estado + botón (desktop) */}
+                  <div className="hidden flex-col items-end justify-between md:flex">
+                    <span
+                      className={`text-xs uppercase tracking-wider px-3 py-1 rounded-sm border ${statusBadgeClasses[status]}`}
+                    >
+                      {statusLabels[status]}
+                    </span>
+                    <button
+                      onClick={() => openElenco(obra)}
+                      className="mt-4 inline-flex items-center justify-center rounded-sm border border-primary px-4 py-2 text-xs font-semibold uppercase text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                    >
+                      Ver Elenco
+                    </button>
+                  </div>
+
+                  {/* Estado + botón (mobile) */}
+                  <div className="col-span-2 flex flex-col gap-3 md:hidden">
+                    <span
+                      className={`w-fit rounded-sm border px-3 py-1 text-xs uppercase tracking-wider ${statusBadgeClasses[status]}`}
+                    >
+                      {statusLabels[status]}
+                    </span>
+                    <button
+                      onClick={() => openElenco(obra)}
+                      className="inline-flex items-center justify-center rounded-sm border border-primary px-4 py-2 text-xs font-semibold uppercase text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                    >
+                      Ver Elenco
+                    </button>
+                  </div>
                 </div>
-
-                {/* Título */}
-                <h3 className="text-xl md:text-2xl font-bold text-primary mb-2 uppercase">
-                  {obra.titulo}
-                </h3>
-
-                {/* Información */}
-                <div className="space-y-2 mb-4">
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-semibold text-foreground">Curso:</span> {obra.curso}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-semibold text-foreground">Dirección:</span>{" "}
-                    {obra.director}
-                  </p>
-                </div>
-
-                {/* Sinopsis */}
-                <p className="text-sm md:text-base text-muted-foreground italic mb-6 leading-relaxed">
-                  "{obra.sinopsis}"
-                </p>
-
-                {/* Botón Ver Elenco */}
-                <button
-                  onClick={() => openElenco(obra)}
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors px-4 py-2 rounded-sm font-semibold text-sm uppercase border border-primary border-glow"
-                >
-                  Ver Elenco
-                </button>
               </div>
             ))}
           </div>
@@ -298,6 +585,7 @@ export default function TheaterProgram() {
 
       {/* Modal de elenco */}
       <ElencoModal isOpen={isModalOpen} onClose={closeModal} obra={selectedObra} />
-    </div>
+      </div>
+    </>
   )
 }

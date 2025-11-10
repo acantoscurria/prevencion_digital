@@ -101,12 +101,12 @@ const obras: Obra[] = [
 ]
 
 const bootSequence = [
-  { text: "> Iniciando enlace con sistema PREVENCIÓN DIGITAL...", delay: 550 },
-  { text: "> Abriendo canal cifrado con sala privada...", delay: 620 },
-  { text: "> Verificando credenciales del elenco y equipo técnico...", delay: 580 },
-  { text: "> Sincronizando horarios con protocolo de ciberseguridad...", delay: 600 },
-  { text: "> Compilando programa interactivo para espectadores autorizados...", delay: 640 },
-  { text: "> Acceso concedido. Cargando experiencia inmersiva...", delay: 700 },
+  { text: "> Iniciando enlace con sistema PREVENCIÓN DIGITAL...", delay: 800 },
+  { text: "> Abriendo canal cifrado con sala privada...", delay: 900 },
+  { text: "> Verificando credenciales del elenco y equipo técnico...", delay: 850 },
+  { text: "> Sincronizando horarios con protocolo de ciberseguridad...", delay: 880 },
+  { text: "> Compilando programa interactivo para espectadores autorizados...", delay: 920 },
+  { text: "> Acceso concedido. Cargando experiencia inmersiva...", delay: 1000 },
 ]
 
 type TimelineItem = {
@@ -374,14 +374,6 @@ export default function TheaterProgram() {
         }`}
         aria-hidden={isBooting}
       >
-        <div className="pointer-events-none fixed inset-0 -z-10">
-          <img
-            src={`${prefix}/images/background_prevencion_digital.png`}
-            alt="Fondo prevención digital"
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/80" />
-        </div>
         {/* Header con logos reorganizados */}
         <header className="border-b border-primary/30 bg-card/50 backdrop-blur-sm sticky top-0 z-40">
           <div className="container mx-auto px-4 py-6">
@@ -577,7 +569,15 @@ export default function TheaterProgram() {
               <span className="text-primary">█</span>
             </p>
             <p className="text-xs text-muted-foreground mt-3">
-              Para más información sobre ciberseguridad: www.argentina.gob.ar/aaip
+              Para más información sobre ciberseguridad:{" "}
+              <a
+                href="https://policia.chaco.gob.ar/"
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary underline decoration-dotted underline-offset-2 hover:text-primary/80"
+              >
+                https://policia.chaco.gob.ar/
+              </a>
             </p>
           </div>
         </div>

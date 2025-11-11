@@ -12,7 +12,7 @@ El espectáculo **“Prevención Digital en Escena”** se compone por dos obras
 1. **Perfil Restringido** – duración aproximada: 20 minutos  
 2. **Conect@dos** – duración aproximada: 20 minutos  
 
-🕥 El espectáculo comienza a las 10:30 hs y finaliza a las 11:10 hs (aproximadamente).
+🕥 El espectáculo comienza a las 10:30 hs y finaliza a las 12:00 hs (aproximadamente).
 
 ---
 

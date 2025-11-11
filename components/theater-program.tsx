@@ -24,45 +24,12 @@ const EVENT_START_MINUTE = 30
 
 const obras: Obra[] = [
   {
-    id: 1,
-    titulo: "PERFIL RESTRINGIDO",
-    duracion: "20 min",
-    hora: "10:30",
-    director: "Profesor Gonzalo Ezequiel Rajoy",
-    curso: "4° y 5° año – Turno Mañana",
-    sinopsis:
-      "Revela que detrás de la pantalla nada es lo que parece. Es el reflejo de una realidad oculta tras cada perfil: el grooming —abuso de menores—.",
-    elenco: [
-      "Caravaca Julieta Belén",
-      "Carlen Ernestina",
-      "Castillo Delgado Avril",
-      "Diejtiazchuk Sofía",
-      "Fernández Aguirre Malena",
-      "Fernández Xiomara",
-      "González Sebastián",
-      "Guillen Franco Fabián",
-      "Itonaga Luciana",
-      "Medina Nieva Jazmín",
-      "Montiel Luciana Anahí",
-      "Mosqueda Valentina",
-      "Sosa Juan Ignacio",
-      "Soto Celeste Juliana",
-      "Spotorno Ana Carolina",
-      "Wyss Sophia",
-    ],
-    asistentes: [
-      "Barrios Luna Grisel",
-      "Espinoza Daira Aramis",
-      "Duarte Angelina Magalí",
-    ],
-  },
-  {
     id: 2,
     titulo: "CONECT@DOS",
     duracion: "20 min",
     hora: "10:50",
     director: "Profesora Silvia Inés Gamboa",
-    curso: "4° año – 4ta división – Turno Tarde",
+    curso: "4° año – 5ta división",
     sinopsis:
       "Muestra el lado más oscuro de las redes: una joven engañada, un profesor impune y una comunidad que despierta ante la ausencia de Amparo.",
     elenco: [
@@ -97,6 +64,39 @@ const obras: Obra[] = [
       "Contreras Evangelina",
     ],
     asistentes: ["Lucía López"],
+  },
+  {
+    id: 1,
+    titulo: "PERFIL RESTRINGIDO",
+    duracion: "20 min",
+    hora: "10:30",
+    director: "Profesor Gonzalo Ezequiel Rajoy",
+    curso: "4° año – 5ta división",
+    sinopsis:
+      "Revela que detrás de la pantalla nada es lo que parece. Es el reflejo de una realidad oculta tras cada perfil: el grooming —abuso de menores—.",
+    elenco: [
+      "Caravaca Julieta Belén",
+      "Carlen Ernestina",
+      "Castillo Delgado Avril",
+      "Diejtiazchuk Sofía",
+      "Fernández Aguirre Malena",
+      "Fernández Xiomara",
+      "González Sebastián",
+      "Guillen Franco Fabián",
+      "Itonaga Luciana",
+      "Medina Nieva Jazmín",
+      "Montiel Luciana Anahí",
+      "Mosqueda Valentina",
+      "Sosa Juan Ignacio",
+      "Soto Celeste Juliana",
+      "Spotorno Ana Carolina",
+      "Wyss Sophia",
+    ],
+    asistentes: [
+      "Barrios Luna Grisel",
+      "Espinoza Daira Aramis",
+      "Duarte Angelina Magalí",
+    ],
   },
 ]
 
@@ -196,6 +196,10 @@ export default function TheaterProgram() {
     const year = currentTime.getFullYear()
     return new Date(year, EVENT_MONTH - 1, EVENT_DAY, EVENT_START_HOUR, EVENT_START_MINUTE, 0, 0)
   }, [currentTime])
+  const eventEndTime = useMemo(() => {
+    const year = currentTime.getFullYear()
+    return new Date(year, EVENT_MONTH - 1, EVENT_DAY, 12, 0, 0, 0)
+  }, [currentTime])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -238,12 +242,14 @@ export default function TheaterProgram() {
 
   const isBeforeEventDay = currentTime < eventDayStart
   const isAfterEventDay = currentTime >= eventDayEnd
+  const isEventOngoing = currentTime >= eventStart && currentTime < eventEndTime
+  const isEventFinished = currentTime >= eventEndTime
 
   const countdown = useMemo(() => {
     const diffMs = eventStart.getTime() - currentTime.getTime()
 
     if (diffMs <= 0) {
-      if (isAfterEventDay) {
+      if (isEventFinished) {
         return {
           text: "La función ya finalizó. Gracias por acompañarnos.",
           className: "text-primary/80",
@@ -275,32 +281,8 @@ export default function TheaterProgram() {
     }
   }, [currentTime, eventStart, isAfterEventDay])
 
-  const timeline = useMemo<TimelineItem[]>(() => {
-    const now = currentTime.getHours() * 60 + currentTime.getMinutes()
-
-    return obras.map((obra) => {
-      const [hours, minutes] = obra.hora.split(":").map(Number)
-      const start = hours * 60 + minutes
-      const duration = Number.parseInt(obra.duracion, 10) || 0
-
-      let status: Status
-      if (isBeforeEventDay) {
-        status = "upcoming"
-      } else if (isAfterEventDay) {
-        status = "completed"
-      } else {
-        if (now < start) {
-          status = "upcoming"
-        } else if (now >= start && now < start + duration) {
-          status = "in-progress"
-        } else {
-          status = "completed"
-        }
-      }
-
-      return { data: obra, status }
-    })
-  }, [currentTime, isBeforeEventDay, isAfterEventDay])
+  // Simplified timeline: we only need to render obras and their duración.
+  const timeline = useMemo(() => obras, [])
 
   const prefix = useMemo(resolveAssetPrefix, [])
 
@@ -314,29 +296,6 @@ export default function TheaterProgram() {
     setSelectedObra(null)
   }
 
-  const statusLabels: Record<Status, string> = {
-    completed: "✓ Completo",
-    "in-progress": "▶ En vivo",
-    upcoming: "○ Próximo",
-  }
-
-  const statusBadgeClasses: Record<Status, string> = {
-    completed: "border-primary/60 text-primary bg-primary/10",
-    "in-progress": "border-primary text-primary bg-primary/20 border-glow",
-    upcoming: "border-primary/30 text-muted-foreground",
-  }
-
-  const statusClockClasses: Record<Status, string> = {
-    completed: "text-primary",
-    "in-progress": "text-primary animate-pulse",
-    upcoming: "text-foreground",
-  }
-
-  const statusDotClasses: Record<Status, string> = {
-    completed: "bg-primary border-primary",
-    "in-progress": "bg-primary border-primary",
-    upcoming: "bg-background border-border",
-  }
 
   return (
     <>
@@ -424,11 +383,17 @@ export default function TheaterProgram() {
                 13 de noviembre • Teatro Guido Miranda
               </p>
               <p className="text-xs md:text-sm text-muted-foreground">
-                Comienza a las 10:30 hs | Finaliza a las 11:10 hs (aproximadamente)
+                Comienza a las 10:30 hs | Finaliza a las 12:00 hs (aproximadamente)
               </p>
               <p className={`text-xs font-semibold uppercase md:text-sm ${countdown.className}`}>
                 {countdown.text}
               </p>
+              {isEventOngoing && (
+                <p className="text-sm font-bold uppercase text-red-400">EN CURSO</p>
+              )}
+              {isEventFinished && (
+                <p className="text-sm font-semibold uppercase text-primary/80">FINALIZADO</p>
+              )}
             </div>
           </div>
         </div>
@@ -449,48 +414,25 @@ export default function TheaterProgram() {
 
           {/* Timeline vertical */}
           <div className="space-y-6">
-            {timeline.map(({ data: obra, status }, index) => (
+            {timeline.map((obra, index) => (
               <div
                 key={obra.id}
-                className={`group relative border rounded-lg transition-all duration-300 ${
-                  status === "in-progress"
-                    ? "border-primary border-glow bg-primary/5"
-                    : "border-primary/30 bg-card/40 hover:border-primary/50"
-                }`}
+                className={`group relative border rounded-lg transition-all duration-300 border-primary/30 bg-card/40 hover:border-primary/50`}
               >
                 {index < timeline.length - 1 && (
-                  <span
-                    className={`absolute left-[44px] md:left-[60px] top-full h-6 w-px ${
-                      status === "completed" ? "bg-primary" : "bg-primary/40"
-                    }`}
-                  />
+                  <span className={`absolute left-[44px] md:left-[60px] top-full h-6 w-px bg-primary/40`} />
                 )}
 
                 <div className="grid grid-cols-[90px_1fr] gap-4 p-6 md:grid-cols-[120px_1fr_150px] md:gap-6">
-                  {/* Columna de tiempo */}
+                  {/* Duración */}
                   <div className="flex flex-col items-start">
-                    <div
-                      className={`text-lg font-bold md:text-xl ${statusClockClasses[status]}`}
-                    >
-                      {obra.hora}
-                    </div>
-                    <div className="text-xs text-muted-foreground">{obra.duracion}</div>
-                    <div className="relative mt-3">
-                      <span
-                        className={`block h-3 w-3 rounded-full border-2 ${statusDotClasses[status]}`}
-                      />
-                      {status === "in-progress" && (
-                        <span className="absolute inset-0 h-3 w-3 rounded-full border-2 border-primary/60 animate-ping" />
-                      )}
-                    </div>
+                    <div className={`text-lg font-bold md:text-xl`}>{obra.duracion}</div>
+                    <div className="text-xs text-muted-foreground">Duración</div>
                   </div>
 
                   {/* Contenido principal */}
                   <div className="space-y-3">
-                    <h3 className="text-lg font-bold uppercase text-primary md:text-xl">
-                      {status === "in-progress" && <span className="mr-1">&gt;</span>}
-                      {obra.titulo}
-                    </h3>
+                    <h3 className="text-lg font-bold uppercase text-primary md:text-xl">{obra.titulo}</h3>
                     <p className="text-sm italic leading-relaxed text-muted-foreground md:text-base">
                       {obra.sinopsis}
                     </p>
@@ -508,13 +450,8 @@ export default function TheaterProgram() {
                     </div>
                   </div>
 
-                  {/* Estado + botón (desktop) */}
+                  {/* Botón (desktop) */}
                   <div className="hidden flex-col items-end justify-between md:flex">
-                    <span
-                      className={`text-xs uppercase tracking-wider px-3 py-1 rounded-sm border ${statusBadgeClasses[status]}`}
-                    >
-                      {statusLabels[status]}
-                    </span>
                     <button
                       onClick={() => openElenco(obra)}
                       className="mt-4 inline-flex items-center justify-center rounded-sm border border-primary px-4 py-2 text-xs font-semibold uppercase text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
@@ -523,13 +460,8 @@ export default function TheaterProgram() {
                     </button>
                   </div>
 
-                  {/* Estado + botón (mobile) */}
+                  {/* Botón (mobile) */}
                   <div className="col-span-2 flex flex-col gap-3 md:hidden">
-                    <span
-                      className={`w-fit rounded-sm border px-3 py-1 text-xs uppercase tracking-wider ${statusBadgeClasses[status]}`}
-                    >
-                      {statusLabels[status]}
-                    </span>
                     <button
                       onClick={() => openElenco(obra)}
                       className="inline-flex items-center justify-center rounded-sm border border-primary px-4 py-2 text-xs font-semibold uppercase text-primary transition-colors hover:bg-primary hover:text-primary-foreground"

@@ -29,7 +29,7 @@ const obras: Obra[] = [
     duracion: "20 min",
     hora: "10:50",
     director: "Profesora Silvia Inés Gamboa",
-    curso: "4° año – 4ta división",
+    curso: "4° año – 4ta división - Turno Tarde",
     sinopsis:
       "Muestra el lado más oscuro de las redes: una joven engañada, un profesor impune y una comunidad que despierta ante la ausencia de Amparo.",
     elenco: [
@@ -71,7 +71,7 @@ const obras: Obra[] = [
     duracion: "20 min",
     hora: "10:30",
     director: "Profesor Gonzalo Ezequiel Rajoy",
-    curso: "4° año – 5ta división",
+    curso: "4° año – 5ta división - Turno Mañana",
     sinopsis:
       "Revela que detrás de la pantalla nada es lo que parece. Es el reflejo de una realidad oculta tras cada perfil: el grooming —abuso de menores—.",
     elenco: [

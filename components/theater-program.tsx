@@ -29,7 +29,7 @@ const obras: Obra[] = [
     duracion: "20 min",
     hora: "10:50",
     director: "Profesora Silvia Inés Gamboa",
-    curso: "4° año – 5ta división",
+    curso: "4° año – 4ta división",
     sinopsis:
       "Muestra el lado más oscuro de las redes: una joven engañada, un profesor impune y una comunidad que despierta ante la ausencia de Amparo.",
     elenco: [
@@ -414,65 +414,104 @@ export default function TheaterProgram() {
 
           {/* Timeline vertical */}
           <div className="space-y-6">
-            {timeline.map((obra, index) => (
-              <div
-                key={obra.id}
-                className={`group relative border rounded-lg transition-all duration-300 border-primary/30 bg-card/40 hover:border-primary/50`}
-              >
-                {index < timeline.length - 1 && (
-                  <span className={`absolute left-[44px] md:left-[60px] top-full h-6 w-px bg-primary/40`} />
-                )}
+            {[...timeline, { isBand: true } as any].map((item: any, index: number, arr: any[]) => {
+              const isBand = item && item.isBand
+              if (!isBand) {
+                const obra: Obra = item
+                return (
+                  <div
+                    key={obra.id}
+                    className={`group relative border rounded-lg transition-all duration-300 border-primary/30 bg-card/40 hover:border-primary/50`}
+                  >
+                    {index < arr.length - 1 && (
+                      <span className={`absolute left-[44px] md:left-[60px] top-full h-6 w-px bg-primary/40`} />
+                    )}
 
-                <div className="grid grid-cols-[90px_1fr] gap-4 p-6 md:grid-cols-[120px_1fr_150px] md:gap-6">
-                  {/* Duración */}
-                  <div className="flex flex-col items-start">
-                    <div className={`text-lg font-bold md:text-xl`}>{obra.duracion}</div>
-                    <div className="text-xs text-muted-foreground">Duración</div>
-                  </div>
+                    <div className="grid grid-cols-[90px_1fr] gap-4 p-6 md:grid-cols-[120px_1fr_150px] md:gap-6">
+                      {/* Duración */}
+                      <div className="flex flex-col items-start">
+                        <div className={`text-lg font-bold md:text-xl`}>{obra.duracion}</div>
+                        <div className="text-xs text-muted-foreground">Duración</div>
+                      </div>
 
-                  {/* Contenido principal */}
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-bold uppercase text-primary md:text-xl">{obra.titulo}</h3>
-                    <p className="text-sm italic leading-relaxed text-muted-foreground md:text-base">
-                      {obra.sinopsis}
-                    </p>
-                    <div className="grid gap-2 text-xs text-muted-foreground md:grid-cols-2 md:text-sm">
-                      <p>
-                        <span className="font-semibold text-foreground">Curso:</span> {obra.curso}
-                      </p>
-                      <p>
-                        <span className="font-semibold text-foreground">Dirección:</span> {obra.director}
-                      </p>
-                      <p className="md:col-span-2">
-                        <span className="font-semibold text-foreground">Asistentes y operadoras:</span>{" "}
-                        {obra.asistentes.join(", ")}
-                      </p>
+                      {/* Contenido principal */}
+                      <div className="space-y-3">
+                        <h3 className="text-lg font-bold uppercase text-primary md:text-xl">{obra.titulo}</h3>
+                        <p className="text-sm italic leading-relaxed text-muted-foreground md:text-base">
+                          {obra.sinopsis}
+                        </p>
+                        <div className="grid gap-2 text-xs text-muted-foreground md:grid-cols-2 md:text-sm">
+                          <p>
+                            <span className="font-semibold text-foreground">Curso:</span> {obra.curso}
+                          </p>
+                          <p>
+                            <span className="font-semibold text-foreground">Dirección:</span> {obra.director}
+                          </p>
+                          <p className="md:col-span-2">
+                            <span className="font-semibold text-foreground">Asistentes y operadoras:</span>{" "}
+                            {obra.asistentes.join(", ")}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Botón (desktop) */}
+                      <div className="hidden flex-col items-end justify-between md:flex">
+                        <button
+                          onClick={() => openElenco(obra)}
+                          className="mt-4 inline-flex items-center justify-center rounded-sm border border-primary px-4 py-2 text-xs font-semibold uppercase text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                        >
+                          Ver Elenco
+                        </button>
+                      </div>
+
+                      {/* Botón (mobile) */}
+                      <div className="col-span-2 flex flex-col gap-3 md:hidden">
+                        <button
+                          onClick={() => openElenco(obra)}
+                          className="inline-flex items-center justify-center rounded-sm border border-primary px-4 py-2 text-xs font-semibold uppercase text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                        >
+                          Ver Elenco
+                        </button>
+                      </div>
                     </div>
                   </div>
+                )
+              }
 
-                  {/* Botón (desktop) */}
-                  <div className="hidden flex-col items-end justify-between md:flex">
-                    <button
-                      onClick={() => openElenco(obra)}
-                      className="mt-4 inline-flex items-center justify-center rounded-sm border border-primary px-4 py-2 text-xs font-semibold uppercase text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
-                    >
-                      Ver Elenco
-                    </button>
-                  </div>
+              // Band item
+              return (
+                <div
+                  key="band-item"
+                  className={`group relative border rounded-lg transition-all duration-300 border-primary/30 bg-card/40 hover:border-primary/50`}
+                >
+                  {index < arr.length - 1 && (
+                    <span className={`absolute left-[44px] md:left-[60px] top-full h-6 w-px bg-primary/40`} />
+                  )}
 
-                  {/* Botón (mobile) */}
-                  <div className="col-span-2 flex flex-col gap-3 md:hidden">
-                    <button
-                      onClick={() => openElenco(obra)}
-                      className="inline-flex items-center justify-center rounded-sm border border-primary px-4 py-2 text-xs font-semibold uppercase text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
-                    >
-                      Ver Elenco
-                    </button>
+                  <div className="p-6">
+                    <h3 className="text-lg font-bold text-primary uppercase">BANDA EN VIVO: Los Patitos DeAdso</h3>
+                    <ul className="mt-3 text-sm text-muted-foreground space-y-1">
+                      <li>
+                        <span className="font-semibold text-foreground">Voz 1:</span> Caravaca Julieta Belén
+                      </li>
+                      <li>
+                        <span className="font-semibold text-foreground">Voz 2 y guitarra:</span> Benítez Candela
+                      </li>
+                      <li>
+                        <span className="font-semibold text-foreground">Bajo:</span> Lavergne Pilar
+                      </li>
+                      <li>
+                        <span className="font-semibold text-foreground">Teclado:</span> Giroldi Valentino
+                      </li>
+                    </ul>
+                    <p className="mt-3 text-sm text-muted-foreground">A cargo del Profesor Adso Maidana.</p>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
+
+
 
           {/* Advertencia */}
           <div className="mt-12 border border-destructive/50 rounded-lg p-6 bg-destructive/5">
